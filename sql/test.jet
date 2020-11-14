@@ -1,0 +1,8 @@
+<sqlmap namespace="test">
+
+    <sql id="123">
+        select VERSION(), 1;
+        {{.Hello}}
+    </sql>
+
+</sqlmap>
