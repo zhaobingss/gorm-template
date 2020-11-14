@@ -1,4 +1,4 @@
-package gorm_template
+package template
 
 import (
 	"bytes"
