@@ -8,15 +8,15 @@ import (
 	"gorm.io/gorm"
 )
 
-type gormEngine struct {
+type GormEngine struct {
 	GDB   *gorm.DB
 	set   *jet.Set
 	vars  jet.VarMap
 	cache map[string]*jet.Template
 }
 
-func NewGormEngine(dialector gorm.Dialector, config *gorm.Config, sqlDir string) (*gormEngine, error) {
-	eg := &gormEngine{}
+func NewGormEngine(dialector gorm.Dialector, config *gorm.Config, sqlDir string) (*GormEngine, error) {
+	eg := &GormEngine{}
 	db, err := gorm.Open(dialector, config)
 	if err != nil {
 		return nil, err
@@ -29,8 +29,8 @@ func NewGormEngine(dialector gorm.Dialector, config *gorm.Config, sqlDir string)
 	return eg, err
 }
 
-func (e *gormEngine) clone() *gormEngine {
-	n := &gormEngine{}
+func (e *GormEngine) clone() *GormEngine {
+	n := &GormEngine{}
 	n.GDB = e.GDB
 	n.cache = e.cache
 	n.vars = e.vars
@@ -38,17 +38,17 @@ func (e *gormEngine) clone() *gormEngine {
 	return n
 }
 
-func (e *gormEngine) cloneWithDB(db *gorm.DB) *gormEngine {
+func (e *GormEngine) cloneWithDB(db *gorm.DB) *GormEngine {
 	n := e.clone()
 	n.GDB = db
 	return n
 }
 
-func (e *gormEngine) DB() (*sql.DB, error) {
+func (e *GormEngine) DB() (*sql.DB, error) {
 	return e.GDB.DB()
 }
 
-func (e *gormEngine) QueryTpl(name string, param interface{}, dest interface{}) error {
+func (e *GormEngine) QueryTpl(name string, param interface{}, dest interface{}) error {
 
 	tpl, ok := e.cache[name]
 	if !ok {
@@ -66,7 +66,7 @@ func (e *gormEngine) QueryTpl(name string, param interface{}, dest interface{}) 
 
 }
 
-func (e *gormEngine) ExecTpl(name string, param interface{}) (int64, error) {
+func (e *GormEngine) ExecTpl(name string, param interface{}) (int64, error) {
 
 	tpl, ok := e.cache[name]
 	if !ok {
@@ -85,13 +85,13 @@ func (e *gormEngine) ExecTpl(name string, param interface{}) (int64, error) {
 	return db.RowsAffected, db.Error
 }
 
-func (e *gormEngine) Transcation(f func(e *gormEngine) error, opts ...*sql.TxOptions) error {
+func (e *GormEngine) Transcation(f func(e *GormEngine) error, opts ...*sql.TxOptions) error {
 	return e.GDB.Transaction(func(tx *gorm.DB) error {
 		return f(e.cloneWithDB(tx))
 	}, opts...)
 }
 
-func (e *gormEngine) loadTemplate(sqlDir string) error {
+func (e *GormEngine) loadTemplate(sqlDir string) error {
 	files, err := GetFiles(sqlDir)
 	if err != nil {
 		return err
@@ -111,7 +111,7 @@ func (e *gormEngine) loadTemplate(sqlDir string) error {
 	return nil
 }
 
-func (e *gormEngine) loadTemplateToCache(filePath string) error {
+func (e *GormEngine) loadTemplateToCache(filePath string) error {
 
 	sqlmap, err := parseSqlmap(filePath)
 	if err != nil {
@@ -134,7 +134,7 @@ func (e *gormEngine) loadTemplateToCache(filePath string) error {
 	return nil
 }
 
-func (e *gormEngine) loadTemplateSqlToCache(ns string, sql *Sql) error {
+func (e *GormEngine) loadTemplateSqlToCache(ns string, sql *Sql) error {
 	name := ns + "." + sql.Id
 	tpl, err := e.set.Parse(name, sql.Content)
 	if err != nil {
